@@ -1,4 +1,4 @@
-# Polymarket Escalation Engineering Toolkit
+# Polymarket API Toolkit
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![Node](https://img.shields.io/badge/Node-20+-green.svg)](https://nodejs.org/)
