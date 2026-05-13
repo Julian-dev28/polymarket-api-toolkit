@@ -1,6 +1,6 @@
 import pino from 'pino';
 import axios from 'axios';
-import { PolymarketEndpoints, ApiErrorCodes } from '../config';
+import { PolymarketEndpoints } from '../config';
 
 export interface ApiFailureResult {
   endpoint: string;
@@ -31,7 +31,7 @@ export class ApiFailureDebugger {
     apiSecret?: string;
     passphrase?: string;
   }): Promise<ApiFailureResult> {
-    this.logger.info('Debugging API failure:', params.url);
+    this.logger.info({ url: params.url }, 'Debugging API failure');
     const start = Date.now();
 
     const result: ApiFailureResult = {
@@ -118,7 +118,6 @@ export class ApiFailureDebugger {
     category: string;
   } {
     const status = err.response?.status;
-    const message = (err.response?.data?.err ?? err.response?.data?.error ?? err.message ?? '').toLowerCase();
     const causes: string[] = [];
     const fixes: string[] = [];
     let category = 'unknown';

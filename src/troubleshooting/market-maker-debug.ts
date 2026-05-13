@@ -1,4 +1,3 @@
-import pino from 'pino';
 import axios from 'axios';
 import { PolymarketEndpoints } from '../config';
 
@@ -15,11 +14,6 @@ export interface MarketMakerHealth {
 }
 
 export class MarketMakerDebugger {
-  private logger: pino.Logger;
-
-  constructor(logger?: pino.Logger) {
-    this.logger = logger || pino({ level: 'info' });
-  }
 
   async checkMarketHealth(tokenID: string): Promise<MarketMakerHealth> {
     const health: MarketMakerHealth = {

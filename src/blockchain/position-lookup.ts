@@ -1,6 +1,5 @@
-import { createPublicClient, http, type Hex, type PublicClient } from 'viem';
+import { createPublicClient, http, type Hex } from 'viem';
 import { polygon } from 'viem/chains';
-import pino from 'pino';
 import { ChainConfig, ContractConfig, TokenConfig } from '../config';
 
 const CTF_ABI = [
@@ -37,9 +36,8 @@ export interface PositionReconciliation {
 }
 
 export class PositionLookup {
-  private publicClient: PublicClient;
+  private publicClient: any;
   private ctfAddress: `0x${string}`;
-  private logger: pino.Logger;
 
   constructor(rpcUrl?: string) {
     this.publicClient = createPublicClient({
@@ -47,7 +45,6 @@ export class PositionLookup {
       transport: http(rpcUrl || ChainConfig.polygon.rpcUrl),
     });
     this.ctfAddress = ContractConfig.CTF;
-    this.logger = pino({ level: 'info' });
   }
 
   /** Get CTF token balances for a wallet address */
@@ -66,7 +63,7 @@ export class PositionLookup {
 
     return tokenIDs.map((tokenID, i) => ({
       tokenID,
-      balance: balances[i],
+      balance: balances[i] ?? 0n,
     }));
   }
 
@@ -75,10 +72,6 @@ export class PositionLookup {
     raw: bigint;
     formatted: string;
   }> {
-    const balance = await this.publicClient.getBalance({
-      address: address as `0x${string}`,
-    });
-
     const usdcBalance = await this.publicClient.readContract({
       address: TokenConfig.USDCE as `0x${string}`,
       abi: [
@@ -182,29 +175,22 @@ export class PositionLookup {
 
   /** Look up all CTF tokens for an address by scanning recent transfers */
   async scanCTFTokens(
-    address: string,
+    _address: string,
     fromBlock: bigint,
     toBlock: bigint
   ): Promise<bigint[]> {
-    const transferEvent =
-      '0x4a39dc063a9487ef31ee81dd5a70df66840649ff074b0c8b0c01f3b6e00e17e1';
-
     const logs = await this.publicClient.getLogs({
       address: this.ctfAddress,
       fromBlock,
       toBlock,
-      topics: [
-        transferEvent,
-        null,
-        '0x' + address.slice(2).toLowerCase().padStart(64, '0'),
-      ],
+      event: 'TransferSingle' as any,
     });
 
     const tokenIds = new Set<bigint>();
     for (const log of logs) {
       // Extract token ID from data (for TransferSingle) or topics
       if (log.topics.length >= 4) {
-        const tokenId = BigInt(log.topics[3]);
+        const tokenId = BigInt(log.topics[3] ?? '0x0');
         tokenIds.add(tokenId);
       }
     }
@@ -245,7 +231,7 @@ export class PositionLookup {
     return {
       usdc: usdc.formatted,
       ctfTokens: 0, // Would need to scan for actual count
-      nativeBalance: Number(nativeBalance) / 1e18,
+      nativeBalance: String(Number(nativeBalance) / 1e18),
       blockNumber,
     };
   }

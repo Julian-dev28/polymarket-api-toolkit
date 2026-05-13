@@ -1,6 +1,5 @@
 import { createPublicClient, http, type Hex, type PublicClient } from 'viem';
 import { polygon } from 'viem/chains';
-import pino from 'pino';
 import { TokenConfig, ChainConfig, ContractConfig } from '../config';
 
 const USDC_ABI = [
@@ -118,7 +117,6 @@ export class USDCTracker {
   private publicClient: PublicClient;
   private usdcAddress: `0x${string}`;
   private ctfAddress: `0x${string}`;
-  private logger: pino.Logger;
 
   constructor(usdcAddress?: `0x${string}`) {
     this.publicClient = createPublicClient({
@@ -128,7 +126,6 @@ export class USDCTracker {
     this.usdcAddress =
       usdcAddress || (TokenConfig.USDCE as `0x${string}`);
     this.ctfAddress = ContractConfig.CTF;
-    this.logger = pino({ level: 'info' });
   }
 
   async getUSDCBalance(address: string): Promise<USDCBalance> {
@@ -214,13 +211,13 @@ export class USDCTracker {
 
     return tokenIds.map((tokenId, i) => ({
       tokenID: tokenId,
-      balance: balances[i],
+      balance: balances[i] ?? 0n,
       balanceFormatted: Number(balances[i]).toString(),
     }));
   }
 
   async getRecentTransfers(
-    address: string,
+    _address: string,
     limit: number = 50
   ): Promise<
     Array<{
@@ -232,9 +229,6 @@ export class USDCTracker {
       timestamp: bigint;
     }>
   > {
-    const transferEvent =
-      '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
-
     const allLogs: any[] = [];
 
     // Check "from" address
@@ -242,11 +236,8 @@ export class USDCTracker {
       address: this.usdcAddress,
       fromBlock: 0n,
       toBlock: 'latest',
-      topics: [
-        transferEvent,
-        '0x' + address.slice(2).toLowerCase().padStart(64, '0'),
-      ],
-    });
+      event: { anonymous: false, inputs: [], name: 'Transfer', type: 'event' },
+    } as any);
     allLogs.push(...fromLogs);
 
     // Check "to" address
@@ -254,12 +245,8 @@ export class USDCTracker {
       address: this.usdcAddress,
       fromBlock: 0n,
       toBlock: 'latest',
-      topics: [
-        transferEvent,
-        null,
-        '0x' + address.slice(2).toLowerCase().padStart(64, '0'),
-      ],
-    });
+      event: { anonymous: false, inputs: [], name: 'Transfer', type: 'event' },
+    } as any);
     allLogs.push(...toLogs);
 
     const sorted = allLogs
@@ -276,7 +263,7 @@ export class USDCTracker {
     }));
   }
 
-  async isAddressBlocked(address: string): Promise<boolean> {
+  async isAddressBlocked(_address: string): Promise<boolean> {
     try {
       return false;
     } catch {

@@ -1,26 +1,24 @@
-export type { Event, Market, Condition, OrderbookEntry, OrderbookSnapshot,
-  Trade, Candle, MidpriceResponse, SpreadResponse, OrderResponse,
-  Position, UserTrade, HolderData, OpenInterest, TransactionReceipt,
-  BalanceResponse, OrderSide, OrderType, MarketStatus
-} from './schemas';
-
-export { PolymarketEndpoints, ChainConfig, TokenConfig, ContractConfig,
-  ClobConfig, ApiErrorCodes,
-  EventSchema, MarketSchema, ConditionSchema, OrderbookEntrySchema,
-  OrderbookSnapshotSchema, TradeSchema, CandleSchema, MidpriceResponseSchema,
-  SpreadResponseSchema, OrderResponseSchema, PositionSchema, UserTradeSchema,
-  HolderDataSchema, OpenInterestSchema, TransactionReceiptSchema,
-  BalanceResponseSchema, EscalationTicketSchema, ErrorPatternSchema,
-  OrderSide, OrderType, MarketStatus
-} from './endpoints';
+// Re-export everything from schemas module (includes types, schemas, and enum consts)
 export {
   EventSchema, MarketSchema, ConditionSchema, OrderbookEntrySchema,
   OrderbookSnapshotSchema, TradeSchema, CandleSchema, MidpriceResponseSchema,
   SpreadResponseSchema, OrderResponseSchema, PositionSchema, UserTradeSchema,
   HolderDataSchema, OpenInterestSchema, TransactionReceiptSchema,
   BalanceResponseSchema, EscalationTicketSchema, ErrorPatternSchema,
-  OrderSide, OrderType, MarketStatus
+  OrderSide, OrderType, MarketStatus,
 } from './schemas';
+
+export type {
+  Event, Market, Condition, OrderbookEntry, OrderbookSnapshot,
+  Trade, Candle, MidpriceResponse, SpreadResponse, OrderResponse,
+  Position, UserTrade, HolderData, OpenInterest, TransactionReceipt,
+  BalanceResponse, EscalationTicket,
+} from './schemas';
+
+// Re-export endpoints config
+export { PolymarketEndpoints, ChainConfig, TokenConfig, ContractConfig,
+  ClobConfig, ApiErrorCodes,
+} from './endpoints';
 
 export interface PolymarketConfig {
   apiKey?: string;

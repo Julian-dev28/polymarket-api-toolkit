@@ -36,7 +36,7 @@ export class DepositDiscrepancyTroubleshooter {
     clobBalance: string;
     txHash?: string;
   }): Promise<DepositInvestigation> {
-    this.logger.info('Investigating deposit:', { user: params.userAddress, expected: params.expectedAmount });
+    this.logger.info({ user: params.userAddress, expected: params.expectedAmount }, 'Investigating deposit');
     const client = createPublicClient({ chain: polygon, transport: http(this.rpcUrl) });
 
     const [balance, decimals] = await Promise.all([
@@ -56,22 +56,25 @@ export class DepositDiscrepancyTroubleshooter {
       recommendations.push('CLOB may not have processed on-chain settlement yet — wait for confirmations');
     }
 
-    let lastDeposit: DepositInvestigation['lastDeposit'] = undefined;
+    let lastDepositResult: { txHash: string; amount: string; timestamp: number; confirmed: boolean; confirmations: number } | undefined;
     if (params.txHash) {
       try {
-        const receipt = await client.getTransactionReceipt({ hash: params.txHash as Hex });
+        const [tx, receipt] = await Promise.all([
+          client.getTransaction({ hash: params.txHash as Hex }),
+          client.getTransactionReceipt({ hash: params.txHash as Hex }),
+        ]);
         const currentBlock = await client.getBlockNumber();
         const confirmations = Number(currentBlock - receipt.blockNumber);
 
-        lastDeposit = {
+        lastDepositResult = {
           txHash: params.txHash,
-          amount: Number(receipt.value) / 1e6,
+          amount: (Number(tx.value) / 1e6).toString(),
           timestamp: 0,
           confirmed: receipt.status === 'success',
           confirmations,
         };
 
-        if (!lastDeposit.confirmed) {
+        if (!lastDepositResult.confirmed) {
           discrepancies.push('Transaction reverted on-chain');
           recommendations.push('Check tx on Polygonscan for revert reason');
         }
@@ -92,7 +95,7 @@ export class DepositDiscrepancyTroubleshooter {
       clobBalance: params.clobBalance,
       discrepancies,
       txHashes: params.txHash ? [params.txHash] : [],
-      lastDeposit,
+      lastDeposit: lastDepositResult,
       recommendations,
     };
   }

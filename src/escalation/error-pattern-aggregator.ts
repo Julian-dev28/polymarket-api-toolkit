@@ -1,5 +1,4 @@
 import pino from 'pino';
-import { z } from 'zod';
 
 export interface ErrorEvent {
   id: string;
@@ -47,7 +46,7 @@ export class ErrorPatternAggregator {
   addEvent(event: ErrorEvent): void {
     this.events.push(event);
     this.updatePatterns();
-    this.logger.debug('Error event added:', { pattern: event.pattern, userId: event.userId });
+    this.logger.debug({ pattern: event.pattern, userId: event.userId }, 'Error event added');
   }
 
   /** Add multiple error events at once */
@@ -266,17 +265,17 @@ export class ErrorPatternAggregator {
 
       this.patterns.set(pattern, {
         patternId,
-        errorMessage: events[0].errorMessage,
+        errorMessage: events[0]?.errorMessage ?? 'unknown',
         pattern,
         occurrences: events.length,
         firstSeen,
         lastSeen,
         affectedUsers: affectedUsers as string[],
         affectedSystems: [...new Set(events.map((e) => e.endpoint || 'unknown'))],
-        severity: events[0].severity || 'P3',
-        category: events[0].category,
+        severity: (events[0]?.severity ?? 'P3') as 'P0' | 'P1' | 'P2' | 'P3' | 'P4',
+        category: events[0]?.category ?? 'unknown',
         relatedTickets: [],
-        suggestedFix: this.suggestFix(pattern, events[0].category),
+        suggestedFix: this.suggestFix(pattern, events[0]?.category ?? 'unknown'),
         trend,
       });
     }

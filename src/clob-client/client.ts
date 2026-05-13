@@ -5,7 +5,8 @@ import pino from 'pino';
 
 export class ClobClient {
   private http: AxiosInstance;
-  private logger: pino.Logger;
+  private logger: pino.Logger = pino({ level: 'info' });
+
   private apiKey?: string;
   private apiSecret?: string;
   private passphrase?: string;
@@ -55,7 +56,7 @@ export class ClobClient {
             config.headers['X-CLOB-PASSPHRASE'] = this.passphrase;
           }
         } catch (err) {
-          this.logger.warn('Failed to sign request:', err);
+          this.logger.warn({ err: String(err) }, 'Failed to sign request');
         }
       }
       return config;
@@ -65,7 +66,7 @@ export class ClobClient {
       (response) => response,
       (error: AxiosError) => {
         const apiError = this.classifyApiError(error);
-        this.logger.error('CLOB API error:', {
+        this.logger.error({
           status: error.response?.status,
           statusText: error.response?.statusText,
           data: error.response?.data,
@@ -73,7 +74,7 @@ export class ClobClient {
           method: error.config?.method,
           code: apiError.code,
           message: apiError.message,
-        });
+        }, 'CLOB API error');
         return Promise.reject(apiError);
       },
     );
@@ -106,7 +107,7 @@ export class ClobClient {
   // ── Market Data (Public - no auth required) ──────────────
 
   async getMidprice(tokenID: string): Promise<MidpriceResponse> {
-    const res = await this.http.get(M polymarketEndpoints.CLOB.midPrice(tokenID));
+    const res = await this.http.get(PolymarketEndpoints.CLOB.midPrice(tokenID));
     return MidpriceResponseSchema.parse(res.data);
   }
 
@@ -245,14 +246,11 @@ export class ClobClient {
 
 export class DataApiClient {
   private http: AxiosInstance;
-  private logger: pino.Logger;
-
   constructor() {
     this.http = axios.create({
       baseURL: PolymarketEndpoints.DATA.baseUrl,
       timeout: 30000,
     });
-    this.logger = pino({ level: 'info' });
   }
 
   async getEvents(): Promise<any[]> {
@@ -334,14 +332,11 @@ export class DataApiClient {
 
 export class GammaApiClient {
   private http: AxiosInstance;
-  private logger: pino.Logger;
-
   constructor() {
     this.http = axios.create({
       baseURL: PolymarketEndpoints.GAMMA.baseUrl,
       timeout: 30000,
     });
-    this.logger = pino({ level: 'info' });
   }
 
   async getEvents(status?: string): Promise<any[]> {
@@ -425,7 +420,8 @@ export class ClobWebSocketClient {
   private onMessageHandlers: Map<string, (data: any) => void> = new Map();
   private reconnectInterval: number;
   private maxReconnectAttempts: number;
-  private logger: pino.Logger;
+  private logger: pino.Logger = pino({ level: 'info' });
+
   private isConnected = false;
 
   constructor(url?: string, options?: { reconnectInterval?: number; maxAttempts?: number }) {
@@ -454,12 +450,12 @@ export class ClobWebSocketClient {
           const handler = this.onMessageHandlers.get(type);
           if (handler) handler(data);
         } catch (err) {
-          this.logger.error('Failed to parse WS message:', err);
+          this.logger.error({ err: String(err) }, 'Failed to parse WS message');
         }
       };
 
       this.ws.onerror = (error) => {
-        this.logger.error('WebSocket error:', error);
+        this.logger.error({ error: String(error) }, 'WebSocket error');
       };
 
       this.ws.onclose = (event) => {
@@ -468,7 +464,7 @@ export class ClobWebSocketClient {
         this.attemptReconnect();
       };
     } catch (err) {
-      this.logger.error('Failed to create WebSocket:', err);
+      this.logger.error({ err: String(err) }, 'Failed to create WebSocket');
       this.attemptReconnect();
     }
   }
@@ -542,4 +538,4 @@ export class ClobWebSocketClient {
 }
 
 // Schema imports for zod parsing
-import { MidpriceResponseSchema, SpreadResponseSchema, OrderbookSnapshotSchema, TradeSchema, OrderResponseSchema } from '../config/schemas';
+import { CandleSchema, MidpriceResponseSchema, SpreadResponseSchema, OrderbookSnapshotSchema, TradeSchema, OrderResponseSchema } from '../config/schemas';

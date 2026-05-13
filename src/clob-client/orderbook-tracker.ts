@@ -16,16 +16,10 @@ export interface OrderbookDiff {
 export class OrderbookTracker {
   private bids: Map<string, OrderbookEntry> = new Map();
   private asks: Map<string, OrderbookEntry> = new Map();
-  private previousSnapshot: { bids: Map<string, OrderbookEntry>; asks: Map<string, OrderbookEntry> } | null = null;
   private onSnapshotCallback: ((snapshot: any) => void) | null = null;
   private onDiffCallback: ((diff: OrderbookDiff) => void) | null = null;
 
   update(snapshot: any): void {
-    this.previousSnapshot = {
-      bids: new Map(this.bids),
-      asks: new Map(this.asks),
-    };
-
     this.bids.clear();
     this.asks.clear();
 
@@ -42,11 +36,6 @@ export class OrderbookTracker {
   }
 
   applyDiff(diffs: { bids?: OrderbookDiff[]; asks?: OrderbookDiff[] }): void {
-    this.previousSnapshot = {
-      bids: new Map(this.bids),
-      asks: new Map(this.asks),
-    };
-
     if (diffs.bids) {
       for (const diff of diffs.bids) {
         if (diff.action === 'remove') {
@@ -54,7 +43,7 @@ export class OrderbookTracker {
         } else {
           this.bids.set(diff.price, {
             price: diff.price,
-            size: 0,
+            size: '0',
             orders: [],
           } as OrderbookEntry);
         }
@@ -68,7 +57,7 @@ export class OrderbookTracker {
         } else {
           this.asks.set(diff.price, {
             price: diff.price,
-            size: 0,
+            size: '0',
             orders: [],
           } as OrderbookEntry);
         }
@@ -109,6 +98,8 @@ export class OrderbookTracker {
   getOrderbookDepth(): { bidDepth: number; askDepth: number; bidNotional: number; askNotional: number } {
     let bidDepth = 0;
     let askDepth = 0;
+    let bidNotional = 0;
+    let askNotional = 0;
     for (const entry of this.bids.values()) {
       bidDepth += parseFloat(entry.size);
       bidNotional += parseFloat(entry.size) * parseFloat(entry.price);
@@ -143,7 +134,7 @@ export class OrderbookTracker {
 
   getBestBid(): OrderbookEntry | undefined {
     if (this.bids.size === 0) return undefined;
-    return Array.from(this.bids.values()).reduce((max, e) => 
+    return Array.from(this.bids.values()).reduce((max, e) =>
       parseFloat(e.price) > parseFloat(max.price) ? e : max
     );
   }
@@ -166,6 +157,5 @@ export class OrderbookTracker {
   clear(): void {
     this.bids.clear();
     this.asks.clear();
-    this.previousSnapshot = null;
   }
 }

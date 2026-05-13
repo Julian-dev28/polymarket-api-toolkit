@@ -1,5 +1,5 @@
 import pino from 'pino';
-import { createPublicClient, http, type Hex } from 'viem';
+import { createPublicClient, http } from 'viem';
 import { polygon } from 'viem/chains';
 import { ContractConfig, TokenConfig } from '../config';
 
@@ -31,7 +31,7 @@ export class PositionLookupCli {
   }
 
   async getPositionSummary(address: string, tokenIDs: string[]): Promise<PositionSummary> {
-    this.logger.info('Looking up positions for:', address);
+    this.logger.info({ address }, 'Looking up positions for');
 
     const usdcBalance = await this.client.readContract({
       address: TokenConfig.USDCE,

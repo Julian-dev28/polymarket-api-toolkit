@@ -1,5 +1,3 @@
-import pino from 'pino';
-import type { EscalationTicket } from '../config';
 
 export interface IncidentData {
   id: string;
@@ -15,11 +13,6 @@ export interface IncidentData {
 }
 
 export class IncidentCommunicator {
-  private logger: pino.Logger;
-
-  constructor(logger?: pino.Logger) {
-    this.logger = logger || pino({ level: 'info' });
-  }
 
   /** Draft a customer-facing incident notification */
   draftIncidentNotification(incident: IncidentData, template: 'email' | 'dashboard' | 'status_page'): string {
@@ -28,7 +21,9 @@ export class IncidentCommunicator {
       dashboard: this.dashboardTemplate,
       status_page: this.statusPageTemplate,
     };
-    return templates[template](incident);
+    const fn = templates[template];
+    if (fn) return fn(incident);
+    return this.emailTemplate(incident);
   }
 
   /** Draft an update during incident investigation */

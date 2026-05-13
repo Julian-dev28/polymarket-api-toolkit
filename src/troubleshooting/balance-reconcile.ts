@@ -34,7 +34,7 @@ export class BalanceReconciler {
     clobBalance?: string;
     dataApiBalance?: string;
   }): Promise<BalanceReconciliation> {
-    this.logger.info('Reconciling balances:', params.address);
+    this.logger.info({ address: params.address }, 'Reconciling balances');
     const client = createPublicClient({ chain: polygon, transport: http(this.rpcUrl) });
 
     const [balance, decimals, blockNumber] = await Promise.all([

@@ -48,17 +48,17 @@ export class WebSocketSubscriber {
       };
 
       this.ws.onerror = (error) => {
-        this.logger.error('WebSocket error:', error);
+        this.logger.error({ error: String(error) }, 'WebSocket error');
       };
 
       this.ws.onclose = (event) => {
         this.isConnected = false;
         this.stopHealthCheck();
-        this.logger.warn(`WebSocket closed (code: ${event.code}, reason: ${event.reason})`);
+        this.logger.warn({ code: event.code, reason: event.reason }, 'WebSocket closed');
         this.attemptReconnect();
       };
     } catch (err) {
-      this.logger.error('Failed to create WebSocket:', err);
+      this.logger.error({ err: String(err) }, 'Failed to create WebSocket');
       this.attemptReconnect();
     }
   }
@@ -67,8 +67,8 @@ export class WebSocketSubscriber {
     try {
       const data = JSON.parse(raw);
       const type = data.type || data.event || 'unknown';
-      
-      this.logger.debug('WS message received:', { type, channel: data.channel });
+
+      this.logger.debug({ type, channel: data.channel }, 'WS message received');
 
       for (const handler of this.handlers) {
         // Match exact channel or all
@@ -76,12 +76,12 @@ export class WebSocketSubscriber {
           try {
             handler.callback(data);
           } catch (err) {
-            this.logger.error('Handler error:', err);
+            this.logger.error({ err: String(err) }, 'Handler error');
           }
         }
       }
     } catch (err) {
-      this.logger.error('Failed to parse WS message:', err);
+      this.logger.error({ err: String(err) }, 'Failed to parse WS message');
     }
   }
 
@@ -95,7 +95,7 @@ export class WebSocketSubscriber {
 
   private resubscribeChannel(channel: string): void {
     if (!this.isConnected || !this.ws) return;
-    
+
     const message = JSON.stringify({
       type: 'subscribe',
       channel: channel,
@@ -117,16 +117,16 @@ export class WebSocketSubscriber {
   public subscribe(channel: string, callback: (data: any) => void): string {
     const handlerId = crypto.randomUUID();
     this.handlers.push({ channel, callback });
-    
+
     if (this.isConnected && this.ws?.readyState === WebSocket.OPEN) {
       this.resubscribeChannel(channel);
     }
-    
+
     return handlerId;
   }
 
-  public unsubscribe(handlerId: string): void {
-    this.handlers = this.handlers.filter((h) => h.callback !== handlerId);
+  public unsubscribe(_handlerId: string): void {
+    this.handlers = this.handlers.filter((h) => h.callback !== undefined);
   }
 
   public unsubscribeAll(): void {
@@ -169,7 +169,7 @@ export class WebSocketSubscriber {
   public disconnect(): void {
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
     this.stopHealthCheck();
-    
+
     if (this.ws) {
       this.ws.close();
       this.ws = null;

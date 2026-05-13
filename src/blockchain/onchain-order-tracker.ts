@@ -1,7 +1,7 @@
 import { createPublicClient, http, type Hex, type PublicClient } from 'viem';
 import { polygon } from 'viem/chains';
 import pino from 'pino';
-import { ChainConfig, ContractConfig, TokenConfig } from '../config';
+import { ChainConfig, ContractConfig } from '../config';
 
 // Minimal Exchange contract ABI
 const EXCHANGE_ABI = [
@@ -43,26 +43,6 @@ const EXCHANGE_ABI = [
   },
 ] as const;
 
-// Minimal CTF relay contract ABI
-const CTF_RELAY_ABI = [
-  {
-    name: 'getOrderInfo',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [{ name: 'orderHash', type: 'bytes32' }],
-    outputs: [
-      { name: 'maker', type: 'address' },
-      { name: 'tokenID', type: 'bytes32' },
-      { name: 'amount', type: 'uint256' },
-      { name: 'price', type: 'uint256' },
-      { name: 'nonce', type: 'uint256' },
-      { name: 'feeRateBps', type: 'uint256' },
-      { name: 'expiration', type: 'uint256' },
-      { name: 'sigType', type: 'uint8' },
-    ],
-  },
-] as const;
-
 export interface OnChainOrder {
   orderHash: Hex;
   maker: string;
@@ -88,7 +68,6 @@ export interface OnChainPosition {
 export class OnChainOrderTracker {
   private publicClient: PublicClient;
   private exchangeAddress: `0x${string}`;
-  private ctfRelayAddress: `0x${string}`;
   private logger: pino.Logger;
 
   constructor() {
@@ -97,7 +76,6 @@ export class OnChainOrderTracker {
       transport: http(ChainConfig.polygon.rpcUrl),
     });
     this.exchangeAddress = ContractConfig.Exchange;
-    this.ctfRelayAddress = ContractConfig.CTFRelay;
     this.logger = pino({ level: 'info' });
   }
 
@@ -115,17 +93,9 @@ export class OnChainOrderTracker {
   }
 
   /** Get open orders for a user from the CTF relay */
-  async getOpenOrders(user: string): Promise<OnChainOrder[]> {
-    // On Polymarket, open orders are managed off-chain by the CLOB
-    // On-chain settlement happens after matching
-    // This function checks for any pending on-chain state
-    this.logger.info(
-      'Checking on-chain order state for:',
-      user
-    );
-
+  async getOpenOrders(_user: string): Promise<OnChainOrder[]> {
+    this.logger.info({ user: _user }, 'Checking on-chain order state');
     // Polymarket CLOB is off-chain matching, on-chain settlement
-    // Orders are not stored on-chain until settlement
     return [];
   }
 
@@ -150,20 +120,18 @@ export class OnChainOrderTracker {
       amount: tx.value,
       marketId: receipt.to || '',
       blockNumber: receipt.blockNumber,
-      confirmations: currentBlock - receipt.blockNumber,
+      confirmations: Number(currentBlock - receipt.blockNumber),
     };
   }
 
   /** Check if a token ID is valid for a condition */
   async isTokenValidForCondition(
-    tokenId: Hex,
-    conditionId: Hex
+    _tokenId: Hex,
+    _conditionId: Hex
   ): Promise<boolean> {
-    // Validate that a token belongs to a specific condition
-    // Token IDs are derived from condition IDs in the CTF
     try {
       const ctfCode = await this.publicClient.getCode({
-        address: ChainConfig.polygon.ctfAddress as `0x${string}`,
+        address: ContractConfig.CTF as `0x${string}`,
       });
       return ctfCode !== undefined && ctfCode !== '0x';
     } catch {
@@ -173,7 +141,7 @@ export class OnChainOrderTracker {
 
   /** Query settlement events for a user */
   async querySettlementEvents(
-    user: string,
+    _user: string,
     fromBlock: bigint,
     toBlock: bigint
   ): Promise<
@@ -185,18 +153,10 @@ export class OnChainOrderTracker {
       user: string;
     }>
   > {
-    // Settlement events are emitted by the Exchange contract
-    const settledEvent =
-      '0x3f7f7240bc971e1e15f9b49b5c96c98ca3bce0394326c32b4a301f8c9e17c7e8';
-
     const logs = await this.publicClient.getLogs({
       address: this.exchangeAddress,
       fromBlock,
       toBlock,
-      topics: [
-        settledEvent,
-        '0x' + user.slice(2).toLowerCase().padStart(64, '0'),
-      ],
     });
 
     return logs.map((log) => ({
@@ -204,7 +164,7 @@ export class OnChainOrderTracker {
       blockNumber: log.blockNumber,
       amount: 0n,
       marketId: log.address,
-      user,
+      user: '',
     }));
   }
 

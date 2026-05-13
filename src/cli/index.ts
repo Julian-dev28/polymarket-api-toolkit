@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import chalk from 'chalk';
-import inquirer from 'inquirer';
 import ora from 'ora';
-import { ClobClient, DataApiClient, GammaApiClient, TicketGenerator,
-  ErrorPatternAggregator, BalanceReconciler, DepositDiscrepancyTroubleshooter,
-  MarketMakerDebugger, PositionLookupCli, ApiFailureDebugger } from '../config';
-import type { PolymarketConfig } from '../config';
+import { ClobClient, DataApiClient } from '../clob-client/client';
+import { TicketGenerator } from '../escalation/ticket-generator';
+import { ErrorPatternAggregator } from '../escalation/error-pattern-aggregator';
+import { BalanceReconciler } from '../troubleshooting/balance-reconcile';
+import { DepositDiscrepancyTroubleshooter } from '../troubleshooting/deposit-discrepancy';
+import { MarketMakerDebugger } from '../troubleshooting/market-maker-debug';
+import { PositionLookupCli } from '../troubleshooting/position-lookup-cli';
+import { ApiFailureDebugger } from '../troubleshooting/api-failure-debug';
 
 const program = new Command();
 
@@ -24,7 +27,6 @@ program
     try {
       const clob = new ClobClient();
       const data = new DataApiClient();
-      const gamma = new GammaApiClient();
       const [clobHealth, dataHealth] = await Promise.allSettled([
         clob.healthCheck(),
         data.healthCheck(),
@@ -173,7 +175,7 @@ program
   .option('--steps <steps>', 'Steps to reproduce (comma-separated)')
   .action(async (opts) => {
     const generator = new TicketGenerator();
-    const steps = opts.steps ? opts.steps.split(',').map((s) => s.trim()) : ['Reproduce the issue'];
+    const steps = opts.steps ? opts.steps.split(',').map((s: string) => s.trim()) : ['Reproduce the issue'];
 
     const ticket = generator.generateTicket({
       title: opts.title || 'New Escalation',
@@ -246,7 +248,7 @@ program
     const spinner = ora('Looking up positions...').start();
     try {
       const cli = new PositionLookupCli();
-      const tokenIDs = opts.tokens ? opts.tokens.split(',').map((t) => t.trim()) : [];
+      const tokenIDs = opts.tokens ? opts.tokens.split(',').map((t: string) => t.trim()) : [];
       const summary = await cli.getPositionSummary(address, tokenIDs);
       spinner.succeed('Position lookup complete');
       console.log(cli.formatSummary(summary));
@@ -294,7 +296,7 @@ program
 
     const rl = await import('readline');
     const readline = rl.createInterface({ input: process.stdin, output: process.stdout });
-    const prompt = () => new Promise((resolve) => {
+    const prompt = () => new Promise<string>((resolve) => {
       readline.question('\n> ', resolve);
     });
 

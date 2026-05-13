@@ -1,7 +1,7 @@
 import { createPublicClient, http, type Hex, type PublicClient } from 'viem';
 import { polygon } from 'viem/chains';
 import pino from 'pino';
-import { ChainConfig, ContractConfig } from '../config';
+import { ChainConfig } from '../config';
 
 export interface TracedTransaction {
   hash: Hex;
@@ -37,17 +37,11 @@ export class PolygonTracer {
 
   /** Get a fully traced transaction with decoded events */
   async traceTransaction(txHash: Hex): Promise<TracedTransaction> {
-    this.logger.info('Tracing transaction:', txHash);
+    this.logger.info({ txHash }, 'Tracing transaction');
     const receipt = await this.publicClient.getTransactionReceipt({ hash: txHash });
     const tx = await this.publicClient.getTransaction({ hash: txHash });
-    const blockInfo = await this.getBlockInfo(receipt.blockNumber);
 
-    this.logger.info('Transaction traced:', {
-      hash: txHash,
-      block: Number(receipt.blockNumber),
-      status: receipt.status,
-      gasUsed: receipt.gasUsed,
-    });
+    this.logger.info({ hash: txHash, block: Number(receipt.blockNumber), status: receipt.status, gasUsed: receipt.gasUsed }, 'Transaction traced');
 
     return {
       hash: txHash,
@@ -56,7 +50,7 @@ export class PolygonTracer {
       to: tx.to || '',
       value: tx.value,
       gas: tx.gas,
-      gasPrice: tx.gasPrice,
+      gasPrice: tx.gasPrice || 0n,
       status: receipt.status === 'success' ? 'success' : 'reverted',
       logs: receipt.logs.map((log) => ({
         address: log.address,
@@ -81,11 +75,12 @@ export class PolygonTracer {
     }> = [];
 
     for (const log of logs) {
-      if (log.topics[0] === transferEvent && log.topics.length === 3) {
-        const from = '0x' + log.topics[1].slice(26);
-        const to = '0x' + log.topics[2].slice(26);
+      if (log.topics[0] === transferEvent && log.topics.length >= 3) {
+        const topics = log.topics ?? [];
+        const fromAddr = '0x' + (topics[1] ?? '0x').slice(26);
+        const toAddr = '0x' + (topics[2] ?? '0x').slice(26);
         const amount = BigInt('0x' + log.data.slice(2));
-        transfers.push({ from, to, amount, token: log.address });
+        transfers.push({ from: fromAddr, to: toAddr, amount, token: log.address });
       }
     }
     return transfers;
@@ -104,9 +99,10 @@ export class PolygonTracer {
     }> = [];
 
     for (const log of logs) {
-      if (log.topics[0] === approvalEvent && log.topics.length === 3) {
-        const owner = '0x' + log.topics[1].slice(26);
-        const spender = '0x' + log.topics[2].slice(26);
+      if (log.topics[0] === approvalEvent && log.topics.length >= 3) {
+        const topics = log.topics ?? [];
+        const owner = '0x' + (topics[1] ?? '0x').slice(26);
+        const spender = '0x' + (topics[2] ?? '0x').slice(26);
         const amount = BigInt('0x' + log.data.slice(2));
         approvals.push({ owner, spender, amount });
       }
@@ -135,10 +131,11 @@ export class PolygonTracer {
     }> = [];
 
     for (const log of logs) {
-      if (log.topics[0] === batchTransferEvent && log.topics.length === 3) {
-        const operator = '0x' + log.topics[1].slice(26);
-        const from = '0x' + log.topics[2].slice(26);
-        const to = '0x' + log.topics[3].slice(26);
+      if (log.topics[0] === batchTransferEvent && log.topics.length >= 4) {
+        const topics = log.topics ?? [];
+        const operator = '0x' + (topics[1] ?? '0x').slice(26);
+        const fromAddr = '0x' + (topics[2] ?? '0x').slice(26);
+        const toAddr = '0x' + (topics[3] ?? '0x').slice(26);
 
         const data = log.data;
         const tokenIds: bigint[] = [];
@@ -157,7 +154,7 @@ export class PolygonTracer {
           }
         }
 
-        transfers.push({ operator, from, to, tokenIds, amounts });
+        transfers.push({ operator, from: fromAddr, to: toAddr, tokenIds, amounts });
       }
     }
     return transfers;
@@ -210,11 +207,14 @@ export class PolygonTracer {
     data?: Hex,
     from?: string
   ): Promise<bigint> {
-    return this.publicClient.estimateGas({
+    const params: Parameters<typeof this.publicClient.estimateGas>[0] = {
       to: to as `0x${string}`,
       data,
-      from: from ? (from as `0x${string}`) : undefined,
-    });
+    };
+    if (from) {
+      (params as any).from = from as `0x${string}`;
+    }
+    return this.publicClient.estimateGas(params as any);
   }
 
   async traceMultipleTransactions(
@@ -225,7 +225,7 @@ export class PolygonTracer {
       try {
         results.push(await this.traceTransaction(hash));
       } catch (err) {
-        this.logger.error('Failed to trace transaction:', { hash, error: err });
+        this.logger.error({ hash: String(hash), error: String(err) }, 'Failed to trace transaction');
         results.push({
           hash,
           blockNumber: 0n,

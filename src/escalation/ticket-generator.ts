@@ -1,9 +1,4 @@
 import pino from 'pino';
-import {
-  EscalationTicketSchema,
-  OrderSide,
-  ApiErrorCodes,
-} from '../config';
 
 export type Severity = 'P0' | 'P1' | 'P2' | 'P3' | 'P4';
 export type TicketCategory =
@@ -26,9 +21,12 @@ export type TicketStatus =
   | 'RESOLVED'
   | 'CLOSED';
 
+export type ApiRequest = { method: string; url: string; headers?: Record<string, string>; body?: unknown };
+export type ApiResponse = { status: number; data: unknown; timestamp: string };
+
 export interface EvidenceCollection {
-  apiRequests?: Array<{ method: string; url: string; headers?: Record<string; string>; body?: any }>;
-  apiResponses?: Array<{ status: number; data: any; timestamp: string }>;
+  apiRequests?: ApiRequest[];
+  apiResponses?: ApiResponse[];
   errorLogs?: string[];
   txHashes?: string[];
   screenshots?: string[];
@@ -110,7 +108,7 @@ export class TicketGenerator {
       internalNotes: [],
     };
 
-    this.logger.info('Generated escalation ticket:', { id, title: ticket.title, severity: ticket.severity });
+    this.logger.info({ id, title: ticket.title, severity: ticket.severity }, 'Generated escalation ticket');
     return ticket;
   }
 
@@ -205,47 +203,49 @@ export class TicketGenerator {
   /** Generate a structured bug report from a CLOB API error */
   fromApiError(params: {
     title: string;
-    apiError: any;
-    request: any;
-    response?: any;
+    apiError: unknown;
+    request: unknown;
+    response?: unknown;
     userId?: string;
   }): BugReport {
-    const error = params.apiError;
+    const error = params.apiError as Record<string, unknown>;
+    const request = params.request as Record<string, unknown>;
+    const response = params.response as Record<string, unknown>;
     const severity = this.detectSeverityFromError(
-      error.message || error.code || String(error)
+      (error as any).message || (error as any) as string || String(error)
     );
 
     const ticket = this.generateTicket({
       title: params.title,
       category: 'api_failure',
       severity,
-      description: `API request failed: ${error.message || error.code || 'Unknown error'}`,
+      description: `API request failed: ${(error as any).message || (error as any) as string || 'Unknown error'}`,
       stepsToReproduce: [
         'Send request to Polymarket CLOB/Data API',
         'Receive error response',
       ],
       expectedBehavior: 'Successful API response with expected data',
-      actualBehavior: `${error.message || error.code || 'Unknown error'}`,
+      actualBehavior: `${(error as any).message || (error as any) as string || 'Unknown error'}`,
       user: params.userId || null,
       affectedSystems: ['CLOB API', 'Data API'],
       evidence: {
         apiRequests: [
           {
-            method: request.method || 'GET',
-            url: request.url || '',
-            headers: request.headers,
-            body: request.body,
+            method: (request as any).method || 'GET',
+            url: (request as any).url || '',
+            headers: (request as any).headers,
+            body: (request as any).body,
           },
         ],
         apiResponses: [
           {
-            status: response?.status || error.status || 0,
-            data: response?.data || error,
+            status: (response as any)?.status || (error as any).status || 0,
+            data: (response as any)?.data || error,
             timestamp: new Date().toISOString(),
           },
         ],
         errorLogs: [
-          error.message || error.code || JSON.stringify(error),
+          (error as any).message || String(error),
         ],
       },
     });
@@ -256,12 +256,12 @@ export class TicketGenerator {
   /** Generate a bug report from a failed order */
   fromFailedOrder(params: {
     orderId: string;
-    orderParams: any;
-    error: any;
+    orderParams: Record<string, unknown>;
+    error: Error;
     userId?: string;
   }): BugReport {
     return this.generateTicket({
-      title: `Order ${params.orderId} failed: ${params.error.message || params.error.code || 'Unknown'}`,
+      title: `Order ${params.orderId} failed: ${params.error.message || String(params.error) || 'Unknown'}`,
       category: 'order_issue',
       severity: 'P1',
       description: `Order placement failed for token ${params.orderParams.tokenID}`,
@@ -271,7 +271,7 @@ export class TicketGenerator {
         'Receive error response',
       ],
       expectedBehavior: 'Order accepted and broadcasted successfully',
-      actualBehavior: `${params.error.message || params.error.code || 'Unknown error'}`,
+      actualBehavior: `${params.error.message || String(params.error) || 'Unknown error'}`,
       user: params.userId || null,
       affectedSystems: ['CLOB API', 'Order Matching Engine'],
       evidence: {

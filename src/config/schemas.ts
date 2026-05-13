@@ -326,6 +326,7 @@ export const ErrorPatternSchema = z.object({
 });
 
 export type Event = z.infer<typeof EventSchema>;
+export type EscalationTicket = z.infer<typeof EscalationTicketSchema>;
 export type Market = z.infer<typeof MarketSchema>;
 export type Condition = z.infer<typeof ConditionSchema>;
 export type OrderbookEntry = z.infer<typeof OrderbookEntrySchema>;
