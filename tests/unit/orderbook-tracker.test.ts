@@ -189,7 +189,7 @@ describe('OrderbookTracker', () => {
       expect(depth.bidDepth).toBeCloseTo(300, 5);
       expect(depth.bidNotional).toBeCloseTo(160, 5); // 0.60*100 + 0.50*200 = 60+100 = 160
       expect(depth.askDepth).toBeCloseTo(200, 5);
-      expect(depth.askNotional).toBeCloseTo(115, 5); // 0.70*150 + 0.80*50 = 105+40 = 145
+      expect(depth.askNotional).toBeCloseTo(145, 5); // 0.70*150 + 0.80*50 = 105+40 = 145
     });
 
     it('should handle empty book', () => {

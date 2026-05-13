@@ -1,19 +1,16 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ApiFailureDebugger } from '../../src/troubleshooting/api-failure-debug';
 
+const mocks = vi.hoisted(() => ({
+  mockAxios: vi.fn(),
+}));
+
 vi.mock('pino', () => ({
   default: vi.fn().mockReturnValue({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }),
 }));
 
 vi.mock('axios', () => ({
-  default: {
-    create: vi.fn().mockReturnValue({
-      interceptors: { request: { use: vi.fn() }, response: { use: vi.fn() } },
-      get: vi.fn(),
-      post: vi.fn(),
-      delete: vi.fn(),
-    }),
-  },
+  default: mocks.mockAxios,
 }));
 
 describe('ApiFailureDebugger', () => {
@@ -22,14 +19,13 @@ describe('ApiFailureDebugger', () => {
   beforeEach(() => {
     debugger_ = new ApiFailureDebugger();
     vi.clearAllMocks();
+    mocks.mockAxios.mockReset();
   });
 
   // ---- debugApiFailure ----
   describe('debugApiFailure', () => {
     it('should make request and return result with status when successful', async () => {
-      const mockAxios = await import('axios');
-      const mockInstance = mockAxios.default.create();
-      (mockInstance.get as any).mockResolvedValue({ status: 200, data: { ok: true } });
+      mocks.mockAxios.mockResolvedValue({ status: 200, data: { ok: true } });
 
       const result = await debugger_.debugApiFailure({ url: 'https://example.com/api' });
       expect(result.endpoint).toBe('https://example.com/api');
@@ -41,9 +37,7 @@ describe('ApiFailureDebugger', () => {
     });
 
     it('should handle 401 errors', async () => {
-      const mockAxios = await import('axios');
-      const mockInstance = mockAxios.default.create();
-      (mockInstance.get as any).mockRejectedValue({
+      mocks.mockAxios.mockRejectedValue({
         response: { status: 401, data: { err: 'Invalid API credentials' } },
       });
 
@@ -56,9 +50,7 @@ describe('ApiFailureDebugger', () => {
     });
 
     it('should handle 404 errors', async () => {
-      const mockAxios = await import('axios');
-      const mockInstance = mockAxios.default.create();
-      (mockInstance.get as any).mockRejectedValue({
+      mocks.mockAxios.mockRejectedValue({
         response: { status: 404, data: { error: 'Not found' } },
       });
 
@@ -68,9 +60,7 @@ describe('ApiFailureDebugger', () => {
     });
 
     it('should handle 422 validation errors', async () => {
-      const mockAxios = await import('axios');
-      const mockInstance = mockAxios.default.create();
-      (mockInstance.get as any).mockRejectedValue({
+      mocks.mockAxios.mockRejectedValue({
         response: { status: 422, data: { err: 'Price out of valid range' } },
       });
 
@@ -80,9 +70,7 @@ describe('ApiFailureDebugger', () => {
     });
 
     it('should handle 429 rate limit errors', async () => {
-      const mockAxios = await import('axios');
-      const mockInstance = mockAxios.default.create();
-      (mockInstance.get as any).mockRejectedValue({
+      mocks.mockAxios.mockRejectedValue({
         response: { status: 429, data: { error: 'Rate limited' } },
       });
 
@@ -92,9 +80,7 @@ describe('ApiFailureDebugger', () => {
     });
 
     it('should handle 500/502/503 server errors', async () => {
-      const mockAxios = await import('axios');
-      const mockInstance = mockAxios.default.create();
-      (mockInstance.get as any).mockRejectedValue({
+      mocks.mockAxios.mockRejectedValue({
         response: { status: 500, data: { error: 'Internal server error' } },
       });
 
@@ -104,9 +90,7 @@ describe('ApiFailureDebugger', () => {
     });
 
     it('should handle timeout errors (ECONNABORTED)', async () => {
-      const mockAxios = await import('axios');
-      const mockInstance = mockAxios.default.create();
-      (mockInstance.get as any).mockRejectedValue({
+      mocks.mockAxios.mockRejectedValue({
         code: 'ECONNABORTED',
         message: 'timeout of 30000ms exceeded',
       });
@@ -117,9 +101,7 @@ describe('ApiFailureDebugger', () => {
     });
 
     it('should handle network errors (no response)', async () => {
-      const mockAxios = await import('axios');
-      const mockInstance = mockAxios.default.create();
-      (mockInstance.get as any).mockRejectedValue({
+      mocks.mockAxios.mockRejectedValue({
         message: 'Network Error',
       });
 
@@ -129,9 +111,7 @@ describe('ApiFailureDebugger', () => {
     });
 
     it('should handle unknown errors as category unknown', async () => {
-      const mockAxios = await import('axios');
-      const mockInstance = mockAxios.default.create();
-      (mockInstance.get as any).mockRejectedValue({
+      mocks.mockAxios.mockRejectedValue({
         response: { status: 418, data: { error: "I'm a teapot" } },
       });
 
@@ -140,9 +120,7 @@ describe('ApiFailureDebugger', () => {
     });
 
     it('should support custom method', async () => {
-      const mockAxios = await import('axios');
-      const mockInstance = mockAxios.default.create();
-      (mockInstance.post as any).mockResolvedValue({ status: 201 });
+      mocks.mockAxios.mockResolvedValue({ status: 201 });
 
       const result = await debugger_.debugApiFailure({
         url: 'https://example.com/api',
@@ -153,9 +131,7 @@ describe('ApiFailureDebugger', () => {
     });
 
     it('should handle axios instance rejection', async () => {
-      const mockAxios = await import('axios');
-      const mockInstance = mockAxios.default.create();
-      (mockInstance.get as any).mockRejectedValue(new Error('ECONNREFUSED'));
+      mocks.mockAxios.mockRejectedValue(new Error('ECONNREFUSED'));
 
       const result = await debugger_.debugApiFailure({ url: 'https://example.com/api' });
       expect(result.error).toBe('ECONNREFUSED');
@@ -166,9 +142,7 @@ describe('ApiFailureDebugger', () => {
   // ---- healthCheckEndpoints ----
   describe('healthCheckEndpoints', () => {
     it('should check CLOB health and nonce endpoints', async () => {
-      const mockAxios = await import('axios');
-      const mockInstance = mockAxios.default.create();
-      (mockInstance.get as any).mockResolvedValue({ status: 200 });
+      mocks.mockAxios.mockResolvedValue({ status: 200 });
 
       const results = await debugger_.healthCheckEndpoints();
       expect(results).toHaveLength(2);
@@ -177,9 +151,7 @@ describe('ApiFailureDebugger', () => {
     });
 
     it('should mark unhealthy endpoints on failure', async () => {
-      const mockAxios = await import('axios');
-      const mockInstance = mockAxios.default.create();
-      (mockInstance.get as any).mockRejectedValue(new Error('Connection refused'));
+      mocks.mockAxios.mockRejectedValue(new Error('Connection refused'));
 
       const results = await debugger_.healthCheckEndpoints();
       expect(results).toHaveLength(2);
@@ -188,9 +160,7 @@ describe('ApiFailureDebugger', () => {
     });
 
     it('should record response times', async () => {
-      const mockAxios = await import('axios');
-      const mockInstance = mockAxios.default.create();
-      (mockInstance.get as any).mockResolvedValue({ status: 200 });
+      mocks.mockAxios.mockResolvedValue({ status: 200 });
 
       const results = await debugger_.healthCheckEndpoints();
       expect(results[0].responseTime).toBeGreaterThanOrEqual(0);

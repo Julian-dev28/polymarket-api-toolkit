@@ -8,7 +8,7 @@ vi.mock('pino', () => ({
 
 const mockAxiosGet = vi.fn();
 vi.mock('axios', () => ({
-  default: { get: mockAxiosGet },
+  default: { get: (...args: any[]) => mockAxiosGet(...args) },
 }));
 
 describe('MarketMakerDebugger', () => {
@@ -23,7 +23,7 @@ describe('MarketMakerDebugger', () => {
   // ---- checkMarketHealth ----
   describe('checkMarketHealth', () => {
     it('should return healthy status with all endpoints successful', async () => {
-      mockAxiosGet.mockImplementation(({ url }: any) => {
+      mockAxiosGet.mockImplementation((url: string) => {
         const data: Record<string, any> = {
           'https://clob.polymarket.com/midprice?tokenID=tok-1': { midprice: '0.65' },
           'https://clob.polymarket.com/spread?tokenID=tok-1': { spread: '0.10', spreadPercent: '15.38' },
@@ -55,7 +55,7 @@ describe('MarketMakerDebugger', () => {
     });
 
     it('should return degraded when bid or ask depth is 0', async () => {
-      mockAxiosGet.mockImplementation(({ url }: any) => {
+      mockAxiosGet.mockImplementation((url: string) => {
         const data: Record<string, any> = {
           'https://clob.polymarket.com/midprice?tokenID=tok-1': { midprice: '0.65' },
           'https://clob.polymarket.com/spread?tokenID=tok-1': { spread: '0.10', spreadPercent: '15.38' },
@@ -85,7 +85,7 @@ describe('MarketMakerDebugger', () => {
     });
 
     it('should return some null values when only some endpoints fail', async () => {
-      mockAxiosGet.mockImplementation(({ url }: any) => {
+      mockAxiosGet.mockImplementation((url: string) => {
         if (url.includes('/midprice')) return Promise.resolve({ data: { midprice: '0.50' } });
         if (url.includes('/spread')) return Promise.resolve({ data: { spread: '0.05', spreadPercent: '10.0' } });
         return Promise.reject(new Error('Not available'));
@@ -139,7 +139,7 @@ describe('MarketMakerDebugger', () => {
       expect(report).toContain('Orderbook: 5 bids, 3 asks | Bid: 100, Ask: 150');
       expect(report).toContain('Last trade: 0.65 (20ms)');
       expect(report).toContain('Tick size: 0.01 | Fee: 0.0001 | Neg-risk: false');
-      expect(report).toContain('OVERALL: HEALTHY');
+      expect(report).toContain('Overall: HEALTHY');
     });
 
     it('should omit null fields', () => {

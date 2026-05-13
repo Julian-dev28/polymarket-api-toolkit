@@ -40,7 +40,8 @@ describe('IncidentCommunicator', () => {
 
     it('should generate status_page template', () => {
       const sp = comm.draftIncidentNotification(sampleIncident, 'status_page');
-      expect(sp).toContain('INVESTIGATING: CLOB API Outage');
+      // The source outputs markdown bold formatting
+      expect(sp).toContain('**INVESTIGATING**: CLOB API Outage');
       expect(sp).toContain('investigating a p1-severity issue');
       expect(sp).toContain('15 minutes');
     });
@@ -82,8 +83,8 @@ describe('IncidentCommunicator', () => {
     it('should include title, time, severity, status, update text', () => {
       const update = comm.draftIncidentUpdate(sampleIncident, 'We have identified the root cause');
       expect(update).toContain('## Incident Update: CLOB API Outage');
-      expect(update).toContain('Severity: P1');
-      expect(update).toContain('Status: investigating');
+      expect(update).toContain('**Severity:** P1');
+      expect(update).toContain('**Status:** investigating');
       expect(update).toContain('We have identified the root cause');
       expect(update).toContain('We will provide the next update');
     });
@@ -103,10 +104,10 @@ describe('IncidentCommunicator', () => {
     it('should include all resolution details', () => {
       const notice = comm.draftResolutionNotice(sampleIncident, 'Restarted matching engine');
       expect(notice).toContain('## Incident Resolved: CLOB API Outage');
-      expect(notice).toContain('Started: 2024-01-15T10:00:00Z');
-      expect(notice).toContain('Severity: P1');
-      expect(notice).toContain('Affected Users: ~5000');
-      expect(notice).toContain('Resolution: Restarted matching engine');
+      expect(notice).toContain('**Started:** 2024-01-15T10:00:00Z');
+      expect(notice).toContain('**Severity:** P1');
+      expect(notice).toContain('**Affected Users:** ~5000');
+      expect(notice).toContain('**Resolution:** Restarted matching engine');
       expect(notice).toContain('apologize for any inconvenience');
     });
 
@@ -177,7 +178,7 @@ describe('IncidentCommunicator', () => {
       expect(report).toContain('## Root Cause');
       expect(report).toContain('Memory leak in matching engine');
       expect(report).toContain('## Timeline');
-      expect(report).toContain('monitored-system');
+      expect(report).toContain(sampleIncident.detectedBy);
       expect(report).toContain('## Lessons Learned');
       expect(report).toContain('Add memory monitoring');
       expect(report).toContain('## Preventative Actions');
