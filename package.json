@@ -1,7 +1,7 @@
 {
   "name": "polymarket-agent",
   "version": "1.0.0",
-  "description": "Polymarket Escalation Engineering Toolkit — CLOB API, Gamma API, blockchain tracing, ticket generation, and troubleshooting for the Escalation Engineer role.",
+  "description": "Polymarket API toolkit — CLOB clients, Polygon blockchain tracing, balance reconciliation, and trading infrastructure.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
