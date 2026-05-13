@@ -3,7 +3,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![Node](https://img.shields.io/badge/Node-20+-green.svg)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Test Coverage](https://codecov.io/gh/JulianMartinez/polymarket-agent/branch/main/graph/badge.svg)](https://codecov.io/gh/JulianMartinez/polymarket-agent)
+[![Test Coverage](https://codecov.io/gh/JulianMartinez/polymarket-api-toolkit/branch/main/graph/badge.svg)](https://codecov.io/gh/JulianMartinez/polymarket-api-toolkit)
 [![Changesets](https://img.shields.io/badge/changesets-ready-blue.svg)](https://github.com/changesets/changesets)
 
 ## Table of Contents
@@ -117,7 +117,7 @@ See [docs/architecture.md](./docs/architecture.md) for full diagrams.
 Full-featured Polymarket CLOB client with HMAC-SHA256 request signing, automatic retry, and error classification.
 
 ```typescript
-import { ClobClient } from 'polymarket-agent';
+import { ClobClient } from 'polymarket-api-toolkit';
 
 const client = new ClobClient({
   apiKey: process.env.POLYMARKET_API_KEY,
@@ -150,7 +150,7 @@ const result = await client.withRetry(() => client.placeOrder(orderParams));
 Read-only client for market data, positions, trades, leaderboards, and builder analytics.
 
 ```typescript
-import { DataApiClient } from 'polymarket-agent';
+import { DataApiClient } from 'polymarket-api-toolkit';
 
 const data = new DataApiClient();
 
@@ -178,7 +178,7 @@ const builderAnalytics = await data.getBuilderAnalytics({ builder: '0x...' });
 Market discovery, condition resolution, and outcome token management.
 
 ```typescript
-import { GammaApiClient } from 'polymarket-agent';
+import { GammaApiClient } from 'polymarket-api-toolkit';
 
 const gamma = new GammaApiClient();
 
@@ -206,7 +206,7 @@ const activity = await gamma.getActivity({ market: marketId });
 Real-time orderbook and trade streaming with auto-reconnect and heartbeat monitoring.
 
 ```typescript
-import { ClobWebSocketClient } from 'polymarket-agent';
+import { ClobWebSocketClient } from 'polymarket-api-toolkit';
 
 const ws = new ClobWebSocketClient({
   reconnectInterval: 5000,
@@ -237,7 +237,7 @@ ws.disconnect();
 Full order lifecycle management for escalation debugging.
 
 ```typescript
-import { OrderManager } from 'polymarket-agent';
+import { OrderManager } from 'polymarket-api-toolkit';
 
 const manager = new OrderManager();
 
@@ -269,7 +269,7 @@ const summary = manager.getFillSummary();
 Polygon blockchain transaction tracing with USDC and CTF event decoding.
 
 ```typescript
-import { PolygonTracer } from 'polymarket-agent';
+import { PolygonTracer } from 'polymarket-api-toolkit';
 
 const tracer = new PolygonTracer();
 
@@ -303,7 +303,7 @@ const results = await tracer.traceMultipleTransactions([txHash1, txHash2]);
 USDC.e balance, approval, and transfer tracking via viem.
 
 ```typescript
-import { USDCTracker } from 'polymarket-agent';
+import { USDCTracker } from 'polymarket-api-toolkit';
 
 const tracker = new USDCTracker();
 
@@ -334,7 +334,7 @@ const info = await tracker.getTokenInfo();
 Reconcile CTF positions between on-chain and CLOB state.
 
 ```typescript
-import { PositionLookup } from 'polymarket-agent';
+import { PositionLookup } from 'polymarket-api-toolkit';
 
 const lookup = new PositionLookup();
 
@@ -362,7 +362,7 @@ const summary = await lookup.getBalanceSummary(address);
 Multi-chain deposit/withdrawal tracing for Polygon, Ethereum, Arbitrum, and Base.
 
 ```typescript
-import { BridgeTracer } from 'polymarket-agent';
+import { BridgeTracer } from 'polymarket-api-toolkit';
 
 const tracer = new BridgeTracer();
 
@@ -391,7 +391,7 @@ const chain = tracer.detectChain(tokenAddress);
 Generate structured, engineering-ready bug reports from any error scenario.
 
 ```typescript
-import { TicketGenerator } from 'polymarket-agent';
+import { TicketGenerator } from 'polymarket-api-toolkit';
 
 const generator = new TicketGenerator();
 
@@ -432,7 +432,7 @@ console.log(generator.toJson(ticket));
 Deduplicate, analyze, and generate product feedback from error patterns.
 
 ```typescript
-import { ErrorPatternAggregator } from 'polymarket-agent';
+import { ErrorPatternAggregator } from 'polymarket-api-toolkit';
 
 const aggregator = new ErrorPatternAggregator();
 
@@ -468,7 +468,7 @@ const report = aggregator.generateSummaryReport();
 Draft customer-facing communications during incidents.
 
 ```typescript
-import { IncidentCommunicator } from 'polymarket-agent';
+import { IncidentCommunicator } from 'polymarket-api-toolkit';
 
 const communicator = new IncidentCommunicator();
 
@@ -566,8 +566,8 @@ npx pma health       # Quick health check
 npx pma interactive  # Interactive mode
 
 # Docker
-docker build -t polymarket-agent .
-docker run --env-file config/.env polymarket-agent
+docker build -t polymarket-api-toolkit .
+docker run --env-file config/.env polymarket-api-toolkit
 ```
 
 ## Contributing

@@ -146,7 +146,7 @@ communicator.draftPostIncidentReport(incident, rootCause, lessonsLearned);
 
 ### Scenario: Developer using @polymarket/clob-client-v2 hits unexpected behavior
 ```typescript
-import { ClobClient, DataApiClient, GammaApiClient } from 'polymarket-agent';
+import { ClobClient, DataApiClient, GammaApiClient } from 'polymarket-api-toolkit';
 
 // Full SDK wrapper with Zod validation
 const gamma = new GammaApiClient();

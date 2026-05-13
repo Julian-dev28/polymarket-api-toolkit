@@ -1,5 +1,5 @@
 {
-  "name": "polymarket-agent",
+  "name": "polymarket-api-toolkit",
   "version": "1.0.0",
   "description": "Polymarket API toolkit — CLOB clients, Polygon blockchain tracing, balance reconciliation, and trading infrastructure.",
   "main": "dist/index.js",
