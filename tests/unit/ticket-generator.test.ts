@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { TicketGenerator } from '../../src/escalation/ticket-generator';
+import { TicketGenerator } from '../../src/support-tools/ticket-generator';
 
 describe('TicketGenerator', () => {
   const generator = new TicketGenerator();

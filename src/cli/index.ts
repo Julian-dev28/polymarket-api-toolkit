@@ -3,8 +3,8 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
 import { ClobClient, DataApiClient } from '../clob-client/client';
-import { TicketGenerator } from '../escalation/ticket-generator';
-import { ErrorPatternAggregator } from '../escalation/error-pattern-aggregator';
+import { TicketGenerator } from '../support-tools/ticket-generator';
+import { ErrorPatternAggregator } from '../support-tools/error-pattern-aggregator';
 import { BalanceReconciler } from '../troubleshooting/balance-reconcile';
 import { DepositDiscrepancyTroubleshooter } from '../troubleshooting/deposit-discrepancy';
 import { MarketMakerDebugger } from '../troubleshooting/market-maker-debug';
@@ -15,7 +15,7 @@ const program = new Command();
 
 program
   .name('pma')
-  .description('Polymarket Agent — Escalation Engineering Toolkit')
+  .description('Polymarket Agent — API Debugging Toolkit')
   .version('1.0.0');
 
 // ── Health Check ──────────────────────────────────────────────
@@ -178,7 +178,7 @@ program
     const steps = opts.steps ? opts.steps.split(',').map((s: string) => s.trim()) : ['Reproduce the issue'];
 
     const ticket = generator.generateTicket({
-      title: opts.title || 'New Escalation',
+      title: opts.title || 'New Bug Report',
       category: opts.category || 'other',
       description: opts.description || 'No description provided',
       stepsToReproduce: steps,
@@ -291,7 +291,7 @@ program
   .command('interactive')
   .description('Start interactive troubleshooting mode')
   .action(async () => {
-    console.log(chalk.blue('\n=== Polymarket Escalation Toolkit ==='));
+    console.log(chalk.blue('\n=== Polymarket API Debugging Toolkit ==='));
     console.log(chalk.gray('Type "help" for commands, "quit" to exit\n'));
 
     const rl = await import('readline');

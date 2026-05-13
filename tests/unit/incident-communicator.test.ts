@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { IncidentCommunicator, type IncidentData } from '../../src/escalation/incident-communicator';
+import { IncidentCommunicator, type IncidentData } from '../../src/support-tools/incident-communicator';
 
 describe('IncidentCommunicator', () => {
   const comm = new IncidentCommunicator();
@@ -193,7 +193,7 @@ describe('IncidentCommunicator', () => {
       const report = comm.draftPostIncidentReport(sampleIncident, 'Root cause', []);
       expect(report).toContain('1. Add monitoring for affected systems');
       expect(report).toContain('2. Improve error handling for identified failure modes');
-      expect(report).toContain('3. Update runbooks and escalation procedures');
+      expect(report).toContain('3. Update runbooks and procedures');
       expect(report).toContain('4. Schedule follow-up review in 1 week');
     });
 

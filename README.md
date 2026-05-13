@@ -31,14 +31,14 @@
 
 ## Overview
 
-This toolkit is a comprehensive implementation of everything an Escalation Engineer at Polymarket needs to diagnose, trace, and resolve the most technically complex support issues. It covers every area mentioned in the job description:
+This toolkit is a comprehensive TypeScript codebase for diagnosing, tracing, and resolving the most technically complex issues with Polymarket's APIs and blockchain infrastructure. It's built for engineers who need to debug trading integrations, trace deposits across bridges, and produce structured bug reports — covering every scenario that can trip up a production Polymarket integration:
 
 - **CLOB API debugging** — REST, WebSocket, FIX-style protocol support
 - **Blockchain transaction tracing** — Polygon RPC, USDC, on-chain troubleshooting
 - **Structured bug reports** — Engineering-ready tickets with evidence
 - **Error pattern analysis** — Product feedback generation
 - **Incident management** — Customer communications and post-mortems
-- **Regression testing** — Real escalation scenarios as automated tests
+- **Regression testing** — Real integration failure scenarios as automated tests
 - **Internal tooling** — CLI for fast troubleshooting
 
 ## What This Solves
@@ -83,7 +83,7 @@ npx pma ticket --title "..." --category api_failure
 │  pma CLI    │  TypeScript  │  Interactive Mode      │
 │  (troubleshoot) │ Library   │  (REPL)               │
 ├─────────────┴──────────────┴────────────────────────┤
-│                Escalation Engine                     │
+│              Support Tools                    │
 ├──────────────────────────────────────────────────────┤
 │  TicketGen │ ErrorPattern │ IncidentComm │ KB Builder │
 ├──────────────────────────────────────────────────────┤
@@ -234,7 +234,7 @@ ws.disconnect();
 
 ### Order Manager
 
-Full order lifecycle management for escalation debugging.
+Full order lifecycle management for debugging and testing.
 
 ```typescript
 import { OrderManager } from 'polymarket-api-toolkit';
@@ -527,7 +527,7 @@ pma interactive
 
 ## Regression Tests
 
-Real escalation scenarios converted into automated tests:
+Real integration failure scenarios converted into automated tests:
 
 ```bash
 npm run test

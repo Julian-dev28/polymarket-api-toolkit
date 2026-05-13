@@ -134,7 +134,7 @@ export class IncidentCommunicator {
       '',
       '1. Add monitoring for affected systems',
       '2. Improve error handling for identified failure modes',
-      '3. Update runbooks and escalation procedures',
+      '3. Update runbooks and procedures',
       '4. Schedule follow-up review in 1 week',
       '',
       '---',

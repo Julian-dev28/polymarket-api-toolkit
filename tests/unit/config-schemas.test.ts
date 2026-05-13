@@ -506,7 +506,7 @@ describe('EscalationTicketSchema', () => {
     ],
   };
 
-  it('should validate a complete escalation ticket', () => {
+  it('should validate a complete support ticket', () => {
     const result = EscalationTicketSchema.parse(validTicket);
     expect(result.id).toBe('ticket-1');
     expect(result.severity).toBe('P1');

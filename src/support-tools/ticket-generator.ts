@@ -108,7 +108,7 @@ export class TicketGenerator {
       internalNotes: [],
     };
 
-    this.logger.info({ id, title: ticket.title, severity: ticket.severity }, 'Generated escalation ticket');
+    this.logger.info({ id, title: ticket.title, severity: ticket.severity }, 'Generated ticket');
     return ticket;
   }
 

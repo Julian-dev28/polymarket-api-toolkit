@@ -1,4 +1,4 @@
-// Polymarket Escalation Engineering Toolkit
+// Polymarket API Toolkit
 // Complete API wrapper, blockchain tracer, ticket generator, and troubleshooting tools
 
 // Config
@@ -17,7 +17,7 @@ export { PolygonTracer, USDCTracker, PositionLookup, BridgeTracer,
   OnChainOrderTracker } from './blockchain';
 
 // Escalation
-export { TicketGenerator, ErrorPatternAggregator, IncidentCommunicator } from './escalation';
+export { TicketGenerator, ErrorPatternAggregator, IncidentCommunicator } from './support-tools';
 
 // Troubleshooting
 export { BalanceReconciler, DepositDiscrepancyTroubleshooter,

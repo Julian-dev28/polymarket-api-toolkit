@@ -63,8 +63,8 @@ describe('CLI definition structure', () => {
 
   it('CLI should import classes from internal modules', () => {
     expect(CLI_SOURCE).toContain("from '../clob-client/client'");
-    expect(CLI_SOURCE).toContain("from '../escalation/ticket-generator'");
-    expect(CLI_SOURCE).toContain("from '../escalation/error-pattern-aggregator'");
+    expect(CLI_SOURCE).toContain("from '../support-tools/ticket-generator'");
+    expect(CLI_SOURCE).toContain("from '../support-tools/error-pattern-aggregator'");
     expect(CLI_SOURCE).toContain("from '../troubleshooting/balance-reconcile'");
     expect(CLI_SOURCE).toContain("from '../troubleshooting/deposit-discrepancy'");
     expect(CLI_SOURCE).toContain("from '../troubleshooting/market-maker-debug'");
@@ -172,7 +172,7 @@ describe('CLI command options', () => {
 
 describe('CLI-related pure logic', () => {
   it('should verify TicketGenerator generates valid markdown', async () => {
-    const { TicketGenerator } = await import('../../src/escalation/ticket-generator');
+    const { TicketGenerator } = await import('../../src/support-tools/ticket-generator');
     const gen = new TicketGenerator();
     const report = gen.generateTicket({
       title: 'API timeout',
@@ -192,7 +192,7 @@ describe('CLI-related pure logic', () => {
   });
 
   it('should verify TicketGenerator severity detection', async () => {
-    const { TicketGenerator } = await import('../../src/escalation/ticket-generator');
+    const { TicketGenerator } = await import('../../src/support-tools/ticket-generator');
     const gen = new TicketGenerator();
     expect(gen.detectSeverityFromError('rate limit exceeded')).toBe('P2');
     expect(gen.detectSeverityFromError('insufficient balance')).toBe('P1');
@@ -202,7 +202,7 @@ describe('CLI-related pure logic', () => {
   });
 
   it('should verify TicketGenerator auto-severity from category', async () => {
-    const { TicketGenerator } = await import('../../src/escalation/ticket-generator');
+    const { TicketGenerator } = await import('../../src/support-tools/ticket-generator');
     const gen = new TicketGenerator();
     const r1 = gen.generateTicket({
       title: 't', category: 'order_issue', description: 'd',
@@ -218,7 +218,7 @@ describe('CLI-related pure logic', () => {
 
   it('should verify ErrorPatternAggregator pattern detection and grouping', async () => {
     const { ErrorPatternAggregator } = await import(
-      '../../src/escalation/error-pattern-aggregator'
+      '../../src/support-tools/error-pattern-aggregator'
     );
     const agg = new ErrorPatternAggregator();
 
@@ -242,7 +242,7 @@ describe('CLI-related pure logic', () => {
 
   it('should verify ErrorPatternAggregator getPatternsByCategory', async () => {
     const { ErrorPatternAggregator } = await import(
-      '../../src/escalation/error-pattern-aggregator'
+      '../../src/support-tools/error-pattern-aggregator'
     );
     const agg = new ErrorPatternAggregator();
 
@@ -262,7 +262,7 @@ describe('CLI-related pure logic', () => {
 
   it('should verify IncidentCommunicator draft templates', async () => {
     const { IncidentCommunicator } = await import(
-      '../../src/escalation/incident-communicator'
+      '../../src/support-tools/incident-communicator'
     );
     const comm = new IncidentCommunicator();
     const incident = {
@@ -292,7 +292,7 @@ describe('CLI-related pure logic', () => {
 
   it('should verify IncidentCommunicator calculateImpact', async () => {
     const { IncidentCommunicator } = await import(
-      '../../src/escalation/incident-communicator'
+      '../../src/support-tools/incident-communicator'
     );
     const comm = new IncidentCommunicator();
     const incident = {
@@ -314,7 +314,7 @@ describe('CLI-related pure logic', () => {
   });
 
   it('should verify TicketGenerator fromApiError factory', async () => {
-    const { TicketGenerator } = await import('../../src/escalation/ticket-generator');
+    const { TicketGenerator } = await import('../../src/support-tools/ticket-generator');
     const gen = new TicketGenerator();
     const report = gen.fromApiError({
       title: 'Order placement failed',
@@ -328,7 +328,7 @@ describe('CLI-related pure logic', () => {
   });
 
   it('should verify TicketGenerator fromBalanceDiscrepancy factory', async () => {
-    const { TicketGenerator } = await import('../../src/escalation/ticket-generator');
+    const { TicketGenerator } = await import('../../src/support-tools/ticket-generator');
     const gen = new TicketGenerator();
     const report = gen.fromBalanceDiscrepancy({
       address: '0x1234',
@@ -341,7 +341,7 @@ describe('CLI-related pure logic', () => {
   });
 
   it('should verify TicketGenerator updateStatus', async () => {
-    const { TicketGenerator } = await import('../../src/escalation/ticket-generator');
+    const { TicketGenerator } = await import('../../src/support-tools/ticket-generator');
     const gen = new TicketGenerator();
     const report = gen.generateTicket({
       title: 't', category: 'other', description: 'd',

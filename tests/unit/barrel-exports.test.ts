@@ -33,7 +33,7 @@ describe('src/index.ts barrel exports', () => {
     ]);
   });
 
-  it('should re-export all escalation classes', () => {
+  it('should re-export all support-tools classes', () => {
     expectBarrelExports('index.ts', ['TicketGenerator', 'ErrorPatternAggregator', 'IncidentCommunicator']);
   });
 
@@ -90,15 +90,15 @@ describe('src/clob-client/index.ts barrel exports', () => {
   });
 });
 
-// ── Escalation barrel ────────────────────────────────────────────────────
+// ── Support tools barrel ────────────────────────────────────────────────────
 
-describe('src/escalation/index.ts barrel exports', () => {
-  it('should re-export all escalation classes', () => {
-    expectBarrelExports('escalation/index.ts', ['TicketGenerator', 'ErrorPatternAggregator', 'IncidentCommunicator']);
+describe('src/support-tools/index.ts barrel exports', () => {
+  it('should re-export all support-tools classes', () => {
+    expectBarrelExports('support-tools/index.ts', ['TicketGenerator', 'ErrorPatternAggregator', 'IncidentCommunicator']);
   });
 
   it('should re-export types', () => {
-    const content = readBarrel('escalation/index.ts');
+    const content = readBarrel('support-tools/index.ts');
     expect(/export\\s+type\\s*\\{/.test(content)).toBe(true);
     expect(content).toContain('EvidenceCollection');
     expect(content).toContain('BugReport');
@@ -124,16 +124,16 @@ describe('src/troubleshooting/index.ts barrel exports', () => {
 // ── Runtime verification of barrel imports ───────────────────────────────
 
 describe('barrel export runtime verification', () => {
-  it('should export TicketGenerator from escalation barrel', async () => {
-    const { TicketGenerator } = await import('../../src/escalation/index.js');
+  it('should export TicketGenerator from support-tools barrel', async () => {
+    const { TicketGenerator } = await import('../../src/support-tools/index.js');
     expect(typeof TicketGenerator).toBe('function');
     const gen = new TicketGenerator();
     expect(typeof gen.generateTicket).toBe('function');
     expect(typeof gen.toMarkdown).toBe('function');
   });
 
-  it('should export ErrorPatternAggregator from escalation barrel', async () => {
-    const { ErrorPatternAggregator } = await import('../../src/escalation/index.js');
+  it('should export ErrorPatternAggregator from support-tools barrel', async () => {
+    const { ErrorPatternAggregator } = await import('../../src/support-tools/index.js');
     expect(typeof ErrorPatternAggregator).toBe('function');
     const agg = new ErrorPatternAggregator();
     expect(typeof agg.addEvent).toBe('function');
@@ -142,8 +142,8 @@ describe('barrel export runtime verification', () => {
     expect(agg.getPatterns()).toHaveLength(0);
   });
 
-  it('should export IncidentCommunicator from escalation barrel', async () => {
-    const { IncidentCommunicator } = await import('../../src/escalation/index.js');
+  it('should export IncidentCommunicator from support-tools barrel', async () => {
+    const { IncidentCommunicator } = await import('../../src/support-tools/index.js');
     expect(typeof IncidentCommunicator).toBe('function');
     const comm = new IncidentCommunicator();
     expect(typeof comm.draftIncidentNotification).toBe('function');

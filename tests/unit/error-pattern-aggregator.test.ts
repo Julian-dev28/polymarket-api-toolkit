@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { ErrorPatternAggregator, type ErrorEvent, type ErrorPattern } from '../../src/escalation/error-pattern-aggregator';
+import { ErrorPatternAggregator, type ErrorEvent, type ErrorPattern } from '../../src/support-tools/error-pattern-aggregator';
 
 vi.mock('pino', () => ({
   default: vi.fn().mockReturnValue({ debug: vi.fn() }),
